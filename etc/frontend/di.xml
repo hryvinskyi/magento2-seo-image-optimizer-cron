@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2023. MageCloud.  All rights reserved.
+ * @author: Volodymyr Hryvinskyi <mailto:volodymyr@hryvinskyi.com>
+ */
+-->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Hryvinskyi\SeoImageOptimizerApi\Model\Convertor\ConvertorInterface">
+        <plugin name="conversion_image_uri_catcher"
+                type="Hryvinskyi\SeoImageOptimizerCron\Plugin\ConversionImageUriCatcher"
+                sortOrder="10"/>
+    </type>
+    <type name="Hryvinskyi\SeoImageOptimizerApi\Model\ImageParserInterface">
+        <plugin name="save_captured_images"
+                type="Hryvinskyi\SeoImageOptimizerCron\Plugin\SaveCapturedImages"
+                sortOrder="10"/>
+    </type>
+</config>

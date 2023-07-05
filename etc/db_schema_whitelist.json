@@ -1,0 +1,18 @@
+{
+  "hryvinskyi_seo_image_cron_list": {
+    "column": {
+      "entity_id": true,
+      "source_image_path": true,
+      "result_image_path": true,
+      "image_type": true,
+      "is_optimized": true
+    },
+    "index": {
+      "HRYVINSKYI_SEO_IMAGE_CRON_LIST_ENTITY_ID": true,
+      "HRYVINSKYI_SEO_IMAGE_CRON_LIST_UNIQUE": true
+    },
+    "constraint": {
+      "PRIMARY": true
+    }
+  }
+}

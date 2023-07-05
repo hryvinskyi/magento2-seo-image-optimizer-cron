@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright (c) 2023. MageCloud.  All rights reserved.
+ * @author: Volodymyr Hryvinskyi <mailto:volodymyr@hryvinskyi.com>
+ */
+-->
+
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="hryvinskyi_seo_image_cron_list" resource="default" engine="innodb" comment="">
+        <column xsi:type="int" name="entity_id" padding="11" unsigned="true" nullable="false" identity="true"
+                comment="Entity ID"/>
+        <column xsi:type="varchar" name="source_image_path" nullable="false" length="255" comment="Source Image Path"/>
+        <column xsi:type="varchar" name="result_image_path" nullable="true" length="255" comment="Optimized Image Path"/>
+        <column xsi:type="varchar" name="image_type" nullable="true" length="255" comment="Image Type"/>
+        <column xsi:type="boolean" name="is_optimized" nullable="false" default="0" comment="Is Image Optimized"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="HRYVINSKYI_SEO_IMAGE_CRON_LIST_SOURCE_IMAGE_IS_OPTIMIZED" indexType="btree">
+            <column name="source_image_path"/>
+            <column name="is_optimized"/>
+        </index>
+        <constraint xsi:type="unique" referenceId="HRYVINSKYI_SEO_IMAGE_CRON_LIST_UNIQUE">
+            <column name="source_image_path"/>
+            <column name="result_image_path"/>
+        </constraint>
+    </table>
+</schema>
