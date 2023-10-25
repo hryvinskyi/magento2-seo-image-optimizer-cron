@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2021. MageCloud. All rights reserved.
+ * Copyright (c) 2023. MageCloud. All rights reserved.
  * @author: Volodymyr Hryvinskyi <volodymyr@hryvinskyi.com>
  */
 
@@ -9,7 +9,9 @@ declare(strict_types=1);
 namespace Hryvinskyi\SeoImageOptimizerCron\Model\ResourceModel;
 
 use Hryvinskyi\SeoImageOptimizerCron\Api\Data\ImageInterface;
-use \Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\DB\Adapter\DeadlockException;
+use Magento\Framework\Exception\AlreadyExistsException;
 
 /**
  * Class Image
@@ -18,6 +20,8 @@ use \Magento\Framework\Model\ResourceModel\Db\AbstractDb;
  */
 class Image extends AbstractDb
 {
+    private int $maxRetryCount = 10;
+
     /**
      * @inheritdoc
      * @noinspection MagicMethodsValidityInspection
@@ -33,6 +37,28 @@ class Image extends AbstractDb
      */
     public function addImages(array $imageUrls): void
     {
-        $this->getConnection()->insertOnDuplicate($this->getMainTable(), $imageUrls);
+        for ($tries = 0; ; $tries++) {
+            $this->getConnection()->beginTransaction();
+
+            try {
+                $this->getConnection()->insertOnDuplicate(
+                    $this->getMainTable(),
+                    $imageUrls,
+                    [ImageInterface::SOURCE_IMAGE_PATH, ImageInterface::RESULT_IMAGE_PATH]
+                );
+                $this->getConnection()->commit();
+            } catch (DeadlockException $deadlockException) {
+                $this->getConnection()->rollBack();
+                if ($tries >= $this->maxRetryCount) {
+                    throw $deadlockException;
+                }
+                continue;
+            } catch (\Exception $e) {
+                $this->getConnection()->rollBack();
+                throw $e;
+            }
+
+            break;
+        }
     }
 }
