@@ -7,6 +7,7 @@
 namespace Hryvinskyi\SeoImageOptimizerCron\Model;
 
 use Hryvinskyi\SeoImageOptimizerCron\Api\Data\ImageInterface;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Filesystem\DirectoryList;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -17,13 +18,17 @@ class CapturedImagesList
 
     private StoreManagerInterface $storeManager;
     private DirectoryList $directoryList;
+    private ResourceConnection $resourceConnection;
+    private ?array $images = null;
 
     public function __construct(
-        StoreManagerInterface $storeManager,
-        DirectoryList $directoryList
+        StoreManagerInterface $storeManager = null,
+        DirectoryList $directoryList = null,
+        ResourceConnection $resourceConnection = null
     ) {
-        $this->storeManager = $storeManager;
-        $this->directoryList = $directoryList;
+        $this->storeManager = $storeManager ?? \Magento\Framework\App\ObjectManager::getInstance()->get(StoreManagerInterface::class);
+        $this->directoryList = $directoryList ?? \Magento\Framework\App\ObjectManager::getInstance()->get(DirectoryList::class);
+        $this->resourceConnection = $resourceConnection ?? \Magento\Framework\App\ObjectManager::getInstance()->get(ResourceConnection::class);
     }
 
     /**
@@ -51,6 +56,12 @@ class CapturedImagesList
         $outputFile = $this->convertAbsolutePathToRelativePath($outputFile);
         $inputPath = $this->convertAbsoluteUrlToRelativePath($inputPath);
         $outputFile = $this->convertAbsoluteUrlToRelativePath($outputFile);
+
+        $images = $this->getImages();
+
+        if (isset($images[$inputPath])) {
+            return;
+        }
 
         $this->capturedImages[] = [
             ImageInterface::SOURCE_IMAGE_PATH => $inputPath,
@@ -83,10 +94,31 @@ class CapturedImagesList
     private function convertAbsoluteUrlToRelativePath(string $url): string
     {
         // If you need the base URL, you can get it from the store configuration.
-        $baseUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+        $baseUrls = [];
+        foreach ($this->storeManager->getStores() as $store) {
+            $baseUrls[] = $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+            $baseUrls[] = $store->getBaseUrl(UrlInterface::URL_TYPE_STATIC);
+        }
 
         // Remove the base URL from the absolute URL.
         // check double sleash
-        return str_replace('//', '/', str_replace($baseUrl, '/', $url));
+        return str_replace('//', '/', str_replace($baseUrls, '/pub/media/', $url));
+    }
+
+    /**
+     * Retrieves the images from the database.
+     *
+     * @return array The images as an associative array where the keys are the source image paths and the values are also the source image paths.
+     */
+    private function getImages(): array
+    {
+        if ($this->images === null) {
+            $connection = $this->resourceConnection->getConnection();
+            $tableName = $this->resourceConnection->getTableName('hryvinskyi_seo_image_cron_list');
+            $select = $connection->select()->from($tableName, ['source_image_path', 'result_image_path']);
+            $this->images = $connection->fetchPairs($select);
+        }
+
+        return $this->images;
     }
 }
