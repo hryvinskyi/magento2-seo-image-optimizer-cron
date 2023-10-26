@@ -14,6 +14,7 @@ use Hryvinskyi\SeoImageOptimizerCron\Model\Config;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Filesystem\DirectoryList;
 
 class OptimizeImages
 {
@@ -26,12 +27,14 @@ class OptimizeImages
         ImageRepositoryInterface $imageRepository,
         ConvertorListing $convertorListing,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        Config $config
+        Config $config,
+        DirectoryList $directoryList = null
     ) {
         $this->imageRepository = $imageRepository;
         $this->convertorListing = $convertorListing;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->config = $config;
+        $this->directoryList = $directoryList ?? \Magento\Framework\App\ObjectManager::getInstance()->get(DirectoryList::class);
     }
 
     /**
@@ -62,10 +65,10 @@ class OptimizeImages
 
         foreach ($images as $image) {
             if (isset($convertors[$image->getImageType()])) {
-                $result = $convertors[$image->getImageType()]->convert(
-                    $image->getSourceImagePath(),
-                    $image->getResultImagePath()
-                );
+                $inputPath = $this->directoryList->getRoot() . $image->getSourceImagePath();
+                $outputPath = $this->directoryList->getRoot() . $image->getResultImagePath();
+
+                $result = $convertors[$image->getImageType()]->convert($inputPath, $outputPath);
 
                 $image->setIsOptimized(1);
 
