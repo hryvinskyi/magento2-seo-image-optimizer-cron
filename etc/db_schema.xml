@@ -8,7 +8,7 @@
 
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
-    <table name="hryvinskyi_seo_image_cron_list" resource="default" engine="innodb" comment="">
+    <table name="hryvinskyi_seo_image_cron_list" resource="default" engine="innodb" comment="Hryvinsky Image Cron List">
         <column xsi:type="int" name="entity_id" padding="11" unsigned="true" nullable="false" identity="true"
                 comment="Entity ID"/>
         <column xsi:type="varchar" name="source_image_path" nullable="false" length="255" comment="Source Image Path"/>
