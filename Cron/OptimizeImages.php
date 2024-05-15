@@ -22,6 +22,7 @@ class OptimizeImages
     private ConvertorListing $convertorListing;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private Config $config;
+    private DirectoryList $directoryList;
 
     public function __construct(
         ImageRepositoryInterface $imageRepository,
